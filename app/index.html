@@ -1,0 +1,56 @@
+<!doctype html>
+<!--[if lt IE 8]><html lang="en" class="ie7"><![endif]-->
+<!--[if IE 8]><html lang="en" class="ie8"><![endif]-->
+<!--[if IE 9]><html lang="en" class="ie9"><![endif]-->
+<!--[if gt IE 9]><html lang="en"><![endif]-->
+<!--[if !IE]><html lang="en"><![endif]-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1, minimum-scale=1">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="icon" type="image/png" sizes="16x16" href="">
+    <link rel="stylesheet" href="style/style.css">
+    <title>Audio Visualizer</title>
+		<style>
+			body { margin: 0; }
+			canvas { display: block; }
+		</style>
+  </head>
+  <body>
+    <button onclick="loadAudio()">Play!</button>
+    <script src="script/main.js" defer="defer"></script>
+    <audio id="myAudio" src="./audio/1.mp3"></audio>
+    <script type="text/javascript" src="script/three.js"></script>
+    
+    <script type="text/javascript" src="script/loadscene.js"></script>
+    <script>
+      var frequencyData;
+    </script>
+    <script src="script/audio_analyser.js"></script>
+    <script>
+      // var ctx = new AudioContext();
+      // var audio = document.getElementById('myAudio');
+      // var audioSrc = ctx.createMediaElementSource(audio);
+      // var analyzer = ctx.createAnalyser();
+
+      // audioSrc.connect(analyzer);
+      // audioSrc.connect(ctx.destination);
+
+      // var frequencyData = new Uint8Array(analyzer.frequencyBinCount);
+
+      var animate = function animate() {
+        requestAnimationFrame( animate );
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.01;
+        renderer.render( scene, camera );
+        console.log(frequencyData);
+      }
+      animate();
+    </script>
+    
+    
+    
+  </body>
+</html>

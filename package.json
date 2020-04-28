@@ -1,0 +1,72 @@
+{
+  "name": "project-name",
+  "version": "0.0.1",
+  "description": "Description of your project",
+  "scripts": {
+    "dev": "gulp",
+    "build": "gulp clean && gulp build"
+  },
+  "proxy": {
+    "open": false,
+    "path": "localhost/[your-project]/app"
+  },
+  "vars": {
+    "bundleJS": "main.js",
+    "bundleCSS": "style.css",
+    "scss": "style.scss"
+  },
+  "paths": {
+    "app": {
+      "base": "app",
+      "img": "app/images",
+      "font": "app/fonts",
+      "js": "app/script",
+      "jsSrc": "app/script/src",
+      "jsVendor": "app/script/vendors",
+      "scss": "app/style/scss",
+      "css": "app/style"
+    },
+    "output": {
+      "base": "dist",
+      "img": "dist/images",
+      "font": "dist/fonts",
+      "js": "dist/script",
+      "css": "dist/style"
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "babel-core": "^6.3.15",
+    "babel-eslint": "^8.0.1",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-register": "^6.26.0",
+    "babel-preset-stage-0": "^6.24.1",
+    "browser-sync": "^2.9.10",
+    "critical": "^0.9.1",
+    "eslint": "^4.7.2",
+    "eslint-config-standard": "^10.2.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-node": "^4.2.2",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "gulp": "^3.9.0",
+    "gulp-autoprefixer": "^4.0.0",
+    "gulp-clean": "^0.3.2",
+    "gulp-clean-css": "^3.4.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-imagemin": "^3.3.0",
+    "gulp-plumber": "^1.0.1",
+    "gulp-sass": "^3.1.0",
+    "gulp-shell": "^0.6.3",
+    "gulp-sourcemaps": "^2.6.0",
+    "gulp-util": "^3.0.6",
+    "stylelint": "^8.2.0",
+    "stylelint-config-standard": "^17.0.0",
+    "stylelint-rscss": "^0.4.0",
+    "webpack": "^3.6.0",
+    "webpack-stream": "^4.0.0"
+  }
+}
