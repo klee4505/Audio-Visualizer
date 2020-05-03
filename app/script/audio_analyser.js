@@ -1,6 +1,36 @@
 const MAX_SCALE = 5;
 const MIN_SCALE = 1;
 
+time = Date.now();
+const INC = 2;
+const A4 = 440;
+const C0 = A4 * Math.pow(2, -4.75);
+
+function hsv2rgb(hue, saturation, value) {
+    let chroma = value * saturation;
+    let hue1 = hue / 60;
+    let x = chroma * (1- Math.abs((hue1 % 2) - 1));
+    let r1, g1, b1;
+    if (hue1 >= 0 && hue1 <= 1) {
+      ([r1, g1, b1] = [chroma, x, 0]);
+    } else if (hue1 >= 1 && hue1 <= 2) {
+      ([r1, g1, b1] = [x, chroma, 0]);
+    } else if (hue1 >= 2 && hue1 <= 3) {
+      ([r1, g1, b1] = [0, chroma, x]);
+    } else if (hue1 >= 3 && hue1 <= 4) {
+      ([r1, g1, b1] = [0, x, chroma]);
+    } else if (hue1 >= 4 && hue1 <= 5) {
+      ([r1, g1, b1] = [x, 0, chroma]);
+    } else if (hue1 >= 5 && hue1 <= 6) {
+      ([r1, g1, b1] = [chroma, 0, x]);
+    }
+    
+    let m = value - chroma;
+    let [r,g,b] = [r1+m, g1+m, b1+m];
+    
+    // Change r,g,b values from [0,1] to [0,255]
+	return {red: r, green: g, blue: b};
+  }
 
 function avg(numbers) {
 	let sum = 0;
@@ -12,6 +42,29 @@ function avg(numbers) {
 	}
 	return sum / numbers.length;
 }
+
+function get_percentage(val, minVal, maxVal) {
+    return (val - minVal)/(maxVal - minVal);
+}
+
+function indexOfMax(arr) {
+    if (arr.length === 0) {
+        return -1;
+    }
+
+    var max = arr[0];
+    var maxIndex = 0;
+
+    for (var i = 1; i < arr.length; i++) {
+        if (arr[i] > max) {
+            maxIndex = i;
+            max = arr[i];
+        }
+    }
+
+    return maxIndex;
+}
+
 
 // function modulate(val, minVal, maxVal, outMin, outMax) {
 //     var fr = fractionate(val, minVal, maxVal);
@@ -44,10 +97,15 @@ function createAudioCtx() {
 	analyser.fftSize = 512;
 	bufferLength = analyser.frequencyBinCount;
 	dataArray = new Uint8Array(analyser.frequencyBinCount);
-	render();
 
+	// With 256 bins, each one will be ~86 Hz apart (44100 kHz sample rate / fftSize, where fftSize is twice the number of bins). So you start at zero and go up in 86 Hz increments from there.
+	var frequency_inc = context.sampleRate/analyser.fftSize;
+
+	render();
+	
+
+	
 	function render() { // this function runs at every update
-		console.log("in render");
 		analyser.getByteFrequencyData(dataArray);
 		// slice the array into two halves
 		var lowerHalfArray = dataArray.slice(0, (dataArray.length/2) - 1);
@@ -61,17 +119,36 @@ function createAudioCtx() {
 		var lowerAvgFr = lowerAvg / lowerHalfArray.length;
 		var upperAvgFr = upperAvg / upperHalfArray.length;
 
-		console.log(lowerAvg);
-		console.log(upperAvg);
-		var scalex = (lowerAvg / 255) * MAX_SCALE;
-		var scaley = (upperAvg / 255) * MAX_SCALE;
+		var loudestFr_idx = indexOfMax(dataArray);
+		var loudestFr = loudestFr_idx * frequency_inc;
+
+		//scale cube
+		var scalex = get_percentage(lowerAvg, 0, 255) * MAX_SCALE;
+		var scaley = get_percentage(upperAvg, 0, 255) * MAX_SCALE;
 		cube.scale.x = 1 + scalex;
 		cube.scale.y = 1 + scaley;
 		cube.rotation.x += 0.01;
 		cube.rotation.y += 0.01;
-		renderer.render( scene, camera );
 
-		// makeRoughBall(cube, modulate(Math.pow(lowerMaxFr, 0.8), 0, 1, 0, 8), modulate(upperAvgFr, 0, 1, 0, 4));
+		//color change
+		console.log("loweravgFr: ", lowerAvgFr);
+		if (dataArray[4] > 0) {
+		colorFr = Math.log2(loudestFr / 16.35);
+		if (colorFr < 0) {
+			colorFr = 0;
+		} else if (colorFr > 6) {
+			colorFr = 6
+		}
+		colorFr_p = get_percentage(colorFr, 0, 6);
+
+		rgb = hsv2rgb(colorFr_p * 360, 1, 1);
+
+		cube.material.color.r += (rgb.red - cube.material.color.r) / 80;
+		cube.material.color.g += (rgb.green - cube.material.color.g) / 80;
+		cube.material.color.b += (rgb.blue - cube.material.color.b) / 80;
+		}
+
+		renderer.render( scene, camera );
 		requestAnimationFrame(render);
 
 	}
@@ -105,47 +182,3 @@ var animate = function animate() {
 	
 	renderer.render( scene, camera );
 }
-
-function makeRoughBall(mesh, bassFr, treFr) { 
-	mesh.geometry.vertices.forEach(function (vertex, i) {
-	  var offset = mesh.geometry.parameters.radius;
-	  var time = window.performance.now(); 
-	  vertex.normalize();
-	  var distance = (offset + bassFr ) + noise.noise3D(
-			vertex.x + time * 0.00007,
-			vertex.y + time * 0.00008,
-			vertex.z + time * 0.00009
-	  ) * amp * treFr;
-	  vertex.multiplyScalar(distance);
-	});
-	mesh.geometry.verticesNeedUpdate = true;
-	mesh.geometry.normalsNeedUpdate = true;
-	mesh.geometry.computeVertexNormals();
-	mesh.geometry.computeFaceNormals();
-}
-// animate();
-
-// function draw() {
-// 	drawVisual = requestAnimationFrame(draw);
-  
-// 	analyser.getByteFrequencyData(dataArray);
-  
-// 	context.fillStyle = 'rgb(0, 0, 0)';
-// 	context.fillRect(0, 0, WIDTH, HEIGHT);
-  
-// 	var barWidth = (WIDTH / bufferLength) * 2.5;
-// 	var barHeight;
-// 	var x = 0;
-  
-// 	for(var i = 0; i < bufferLength; i++) {
-// 	  barHeight = dataArray[i];
-  
-// 	  canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
-// 	  canvasCtx.fillRect(x,HEIGHT-barHeight/2,barWidth,barHeight/2);
-  
-// 	  x += barWidth + 1;
-// 	}
-//   };
-  
-//   draw();
-  
