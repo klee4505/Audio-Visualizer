@@ -65,25 +65,29 @@ function indexOfMax(arr) {
     return maxIndex;
 }
 
-
-// function modulate(val, minVal, maxVal, outMin, outMax) {
-//     var fr = fractionate(val, minVal, maxVal);
-//     var delta = outMax - outMin;
-//     return outMin + (fr * delta);
-// }
-// function fractionate(val, minVal, maxVal) {
-//     return (val - minVal)/(maxVal - minVal);
-// }
-
-// var noise = new SimplexNoise();
-
+var file = document.getElementById("thefile");
+var audio = document.getElementById("audio");
+var fileLabel = document.querySelector("label.file");
+  
+document.onload = function(e){
+    console.log(e);
+    audio.play();
+    play();
+}
+file.onchange = function(){
+    fileLabel.classList.add('normal');
+    audio.classList.add('active');
+    var files = this.files;
+    
+    audio.src = URL.createObjectURL(files[0]);
+    audio.load();
+    audio.play();
+    play();
+}
 
 var context, src, analyser;
 var bufferLength, dataArray;
-function createAudioCtx() {
-	console.log("in createAudioCtx");
-	audio = document.querySelector("audio");
-	
+function play() {
 	/*
 	Enter WebAudio API
 	*/
@@ -92,8 +96,7 @@ function createAudioCtx() {
 	context.createMediaElementSource(audio); //create src inside ctx
 	analyser = context.createAnalyser(); //create analyser in ctx
 	src.connect(analyser);         //connect analyser node to the src
-	analyser.connect(context.destination); // connect the destination 
-										// node to the analyser
+	analyser.connect(context.destination); // connect the destination node to the analyser
 	analyser.fftSize = 512;
 	bufferLength = analyser.frequencyBinCount;
 	dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -102,8 +105,6 @@ function createAudioCtx() {
 	var frequency_inc = context.sampleRate/analyser.fftSize;
 
 	render();
-	
-
 	
 	function render() { // this function runs at every update
 		analyser.getByteFrequencyData(dataArray);
@@ -122,36 +123,68 @@ function createAudioCtx() {
 		var loudestFr_idx = indexOfMax(dataArray);
 		var loudestFr = loudestFr_idx * frequency_inc;
 
-		//scale cube
-		var scalex = get_percentage(lowerAvg, 0, 255) * MAX_SCALE;
+		//scale shape
+		var scaleval = get_percentage(lowerAvg, 0, 255) * MAX_SCALE;
 		var scaley = get_percentage(upperAvg, 0, 255) * MAX_SCALE;
-		cube.scale.x = 1 + scalex;
-		cube.scale.y = 1 + scaley;
-		cube.rotation.x += 0.01;
-		cube.rotation.y += 0.01;
+		shape.scale.x = 1 + scaleval;
+		shape.scale.y = 1 + scaleval;
+		shape.scale.z = 1 + scaleval;
+
+		//rotate shape
+		shape.rotation.x += 0.01;
+		shape.rotation.y += 0.01;
+
+		//rotate orbit
+		orbit.scale.x = 1 + scaleval;
+		orbit.scale.y = 1 + scaleval;
+		orbit.scale.z = 1 + scaleval;
 
 		//color change
 		console.log("loweravgFr: ", lowerAvgFr);
 		if (dataArray[4] > 0) {
-		colorFr = Math.log2(loudestFr / 16.35);
-		if (colorFr < 0) {
-			colorFr = 0;
-		} else if (colorFr > 6) {
-			colorFr = 6
-		}
-		colorFr_p = get_percentage(colorFr, 0, 6);
+			colorFr = Math.log2(loudestFr / 16.35);
+			if (colorFr < 0) {
+				colorFr = 0;
+			} else if (colorFr > 6) {
+				colorFr = 6
+			}
+			colorFr_p = get_percentage(colorFr, 0, 6);
 
-		rgb = hsv2rgb(colorFr_p * 360, 1, 1);
+			rgb = hsv2rgb(colorFr_p * 360, 1, 1);
 
-		cube.material.color.r += (rgb.red - cube.material.color.r) / 80;
-		cube.material.color.g += (rgb.green - cube.material.color.g) / 80;
-		cube.material.color.b += (rgb.blue - cube.material.color.b) / 80;
+			shape.material.color.r += (rgb.red - shape.material.color.r) / 80;
+			shape.material.color.g += (rgb.green - shape.material.color.g) / 60;
+			shape.material.color.b += (rgb.blue - shape.material.color.b) / 100;
+
+			// stars.material.color.r += (rgb.red - stars.material.color.r) / 80;
+			// stars.material.color.g += (rgb.green - stars.material.color.g) / 60;
+			// stars.material.color.b += (rgb.blue - stars.material.color.b) / 100;
+
+			orbit.material.color.r += (rgb.red - orbit.material.color.r) / 80;
+			orbit.material.color.g += (rgb.green - orbit.material.color.g) / 60;
+			orbit.material.color.b += (rgb.blue - orbit.material.color.b) / 100;
 		}
+
+		animate_orbit();
+		function animate_orbit() {
+			for (let i = 0; i < FFT_SIZE; i++) {
+				p = orbit_geometry.vertices[i]
+				var dist = 1.5 + dataArray[i] / 255;
+				p.x = dist * Math.cos(rad_step * i);
+				p.y = dist * Math.sin(rad_step * i);
+			}
+			orbit_geometry.verticesNeedUpdate = true;
+			orbit.rotation.z += 0.01;
+			orbit.rotation.y += 0.01;
+			renderer.render(scene, camera);
+		}
+
 
 		renderer.render( scene, camera );
 		requestAnimationFrame(render);
 
 	}
+	
 	audio.play();
 	
 }
@@ -162,23 +195,20 @@ function pause() {
 function resume() {
 	audio.play();
 }
-increase = true;
-var animate = function animate() {
-	requestAnimationFrame( animate );
-	var offset = cube.geometry.parameters.radius;
-	cube.rotation.x += 0.01;
-	cube.rotation.y += 0.01;
-	if (increase) {
-		cube.scale.x += 0.01;
-	} else {
-		cube.scale.x -= 0.01;
-	}
-	if (cube.scale.x > 5) {
-		increase = false;
-	}
-	if (cube.scale.x < 1) {
-		increase = true;
-	}
-	
-	renderer.render( scene, camera );
+
+function animate_star() {
+
+	star_geometry.vertices.forEach(p => {
+		p.velocity += p.acceleration;
+		p.z += p.velocity;
+		if (p.z > 200) {
+			p.z = -200
+			p.velocity = 0;
+		}
+	});
+	star_geometry.verticesNeedUpdate = true;
+	stars.rotation.y += 0.002;
+	renderer.render(scene, camera);
+	requestAnimationFrame(animate_star);
 }
+animate_star();
