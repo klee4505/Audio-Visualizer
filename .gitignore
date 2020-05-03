@@ -5,4 +5,4 @@ yarn-error.log
 yarn.lock
 dist
 app/style/styles.css
-app/script/main.js
+# app/script/main.js
