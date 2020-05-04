@@ -34,7 +34,10 @@
       "css": "dist/style"
     }
   },
-  "dependencies": {},
+  "dependencies": {
+    "postprocessing": "^6.13.4",
+    "three": "^0.116.1"
+  },
   "devDependencies": {
     "babel-core": "^6.3.15",
     "babel-eslint": "^8.0.1",
