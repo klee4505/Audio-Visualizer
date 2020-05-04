@@ -108,6 +108,7 @@ function play() {
 	
 	function render() { // this function runs at every update
 		analyser.getByteFrequencyData(dataArray);
+		console.log(dataArray);
 		// slice the array into two halves
 		var lowerHalfArray = dataArray.slice(0, (dataArray.length/2) - 1);
 		var upperHalfArray = 
@@ -134,13 +135,12 @@ function play() {
 		shape.rotation.x += 0.01;
 		shape.rotation.y += 0.01;
 
-		//rotate orbit
+		//scale orbit
 		orbit.scale.x = 1 + scaleval;
 		orbit.scale.y = 1 + scaleval;
 		orbit.scale.z = 1 + scaleval;
 
 		//color change
-		console.log("loweravgFr: ", lowerAvgFr);
 		if (dataArray[4] > 0) {
 			colorFr = Math.log2(loudestFr / 16.35);
 			if (colorFr < 0) {
@@ -152,13 +152,13 @@ function play() {
 
 			rgb = hsv2rgb(colorFr_p * 360, 1, 1);
 
-			shape.material.color.r += (rgb.red - shape.material.color.r) / 80;
-			shape.material.color.g += (rgb.green - shape.material.color.g) / 60;
-			shape.material.color.b += (rgb.blue - shape.material.color.b) / 100;
+			// shape.material.color.r += (rgb.red - shape.material.color.r) / 80;
+			// shape.material.color.g += (rgb.green - shape.material.color.g) / 60;
+			// shape.material.color.b += (rgb.blue - shape.material.color.b) / 100;
 
-			// stars.material.color.r += (rgb.red - stars.material.color.r) / 80;
-			// stars.material.color.g += (rgb.green - stars.material.color.g) / 60;
-			// stars.material.color.b += (rgb.blue - stars.material.color.b) / 100;
+			stars.material.color.r += (rgb.red - stars.material.color.r) / 80;
+			stars.material.color.g += (rgb.green - stars.material.color.g) / 60;
+			stars.material.color.b += (rgb.blue - stars.material.color.b) / 100;
 
 			orbit.material.color.r += (rgb.red - orbit.material.color.r) / 80;
 			orbit.material.color.g += (rgb.green - orbit.material.color.g) / 60;
@@ -176,11 +176,11 @@ function play() {
 			orbit_geometry.verticesNeedUpdate = true;
 			orbit.rotation.z += 0.01;
 			orbit.rotation.y += 0.01;
-			renderer.render(scene, camera);
+			// renderer.render(scene, camera);
 		}
 
-
-		renderer.render( scene, camera );
+		composer.render();
+		// renderer.render( scene, camera );
 		requestAnimationFrame(render);
 
 	}
@@ -208,7 +208,8 @@ function animate_star() {
 	});
 	star_geometry.verticesNeedUpdate = true;
 	stars.rotation.y += 0.002;
-	renderer.render(scene, camera);
+	composer.render();
+	// renderer.render( scene, camera );
 	requestAnimationFrame(animate_star);
 }
 animate_star();
